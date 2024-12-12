@@ -1,1 +1,6 @@
-streamlit
+streamlit 
+google-api-python-client 
+google-cloud-vision 
+scikit-learn 
+pillow 
+requests
