@@ -1,6 +1,6 @@
-streamlit 
-google-api-python-client 
-google-cloud-vision 
-scikit-learn 
+ streamlit
+requests 
+beautifulsoup4 
 pillow 
-requests
+imagehash 
+opencv-python
