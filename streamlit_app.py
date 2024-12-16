@@ -1,82 +1,99 @@
 import streamlit as st
 import requests
-from bs4 import BeautifulSoup
+from googleapiclient.discovery import build
+from google.cloud import vision
+from google.cloud.vision import types
 from PIL import Image
-import imagehash
 import io
-import os
-from urllib.parse import urljoin
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 
-# Streamlit UI setup
-st.title("Image Duplicate Detection Tool")
-st.write("Upload an image to find duplicates on the web.")
+# Set up the Google API keys and Custom Search Engine ID
+API_KEY = st.secrets["GOOGLE_API_KEY"]  # Your Google API key from Streamlit secrets
+CX = st.secrets["GOOGLE_SEARCH_ENGINE_ID"]  # Your Google Custom Search Engine ID
 
-# File uploader for image
-uploaded_image = st.file_uploader("Choose an image...", type=["jpg", "png", "jpeg"])
+# Google Vision client for reverse image search
+vision_client = vision.ImageAnnotatorClient()
 
-def get_image_hash(image):
-    """Generate a hash for the image to compare similarity."""
-    return imagehash.average_hash(image)
+# Streamlit UI for text input and file upload
+st.title("Advanced Copyright Content & Image Detection Tool")
+st.write("Detect if your copyrighted content or images are being used elsewhere on the web.")
 
-def compare_images(image1, image2):
-    """Compare two images based on their hash values."""
-    hash1 = get_image_hash(image1)
-    hash2 = get_image_hash(image2)
-    return hash1 - hash2  # The lower the value, the more similar the images
+# Option for user to choose content type: text or image
+content_type = st.selectbox("Select Content Type", ["Text", "Image"])
 
-def fetch_images_from_url(url):
-    """Fetch image URLs from a webpage using BeautifulSoup."""
-    response = requests.get(url)
-    soup = BeautifulSoup(response.text, "html.parser")
-    image_urls = []
-    for img_tag in soup.find_all("img"):
-        img_url = img_tag.get("src")
-        if img_url:
-            # Handle relative URLs
-            img_url = urljoin(url, img_url)
-            image_urls.append(img_url)
-    return image_urls
+# If user selects "Text"
+if content_type == "Text":
+    # Text input for copyrighted content
+    user_content = st.text_area("Paste your copyrighted content:", height=200)
 
-if uploaded_image:
-    # Load the uploaded image
-    image = Image.open(uploaded_image)
-    uploaded_image_hash = get_image_hash(image)
-    st.image(image, caption="Uploaded Image", use_column_width=True)
-
-    # Web scraping to search for images online
-    search_query = st.text_input("Enter a search query to look for similar images:", "")
-    
-    if st.button("Search for Similar Images"):
-        if not search_query:
-            st.error("Please provide a search query to look for similar images.")
+    if st.button("Search the Web for Copyright Violations"):
+        if not user_content.strip():
+            st.error("Please provide your copyrighted content.")
         else:
             try:
-                # Perform a search using Google Images or another image source here (example: scraping a webpage)
-                search_results = fetch_images_from_url(f"https://www.google.com/search?hl=en&tbm=isch&q={search_query}")
-                
+                # Initialize Google Custom Search API
+                service = build("customsearch", "v1", developerKey=API_KEY)
+
+                # Perform the search query
+                response = service.cse().list(q=user_content, cx=CX).execute()
+
+                # Extract URLs from the search results
+                search_results = response.get('items', [])
                 detected_matches = []
-                for img_url in search_results:
-                    try:
-                        img_response = requests.get(img_url, timeout=5)
-                        img = Image.open(io.BytesIO(img_response.content))
 
-                        # Compare hashes
-                        if compare_images(image, img) < 5:  # Threshold value can be adjusted
-                            detected_matches.append(img_url)
-                    except Exception as e:
-                        # Skip images that can't be loaded
-                        continue
+                for result in search_results:
+                    url = result['link']
+                    st.write(f"Analyzing {url}...")
 
-                # Display detected matches
+                    # Fetch the content from the URL
+                    content_response = requests.get(url, timeout=10)
+                    if content_response.status_code == 200:
+                        web_content = content_response.text
+
+                        # Calculate similarity between user content and web content
+                        vectorizer = TfidfVectorizer().fit_transform([user_content, web_content])
+                        similarity = cosine_similarity(vectorizer[0:1], vectorizer[1:2])
+
+                        # If similarity exceeds a threshold, record the match
+                        if similarity[0][0] > 0.8:  # Adjust the threshold as needed
+                            detected_matches.append((url, similarity[0][0]))
+
+                # Display results
                 if detected_matches:
-                    st.success("Potential duplicate images detected!")
+                    st.success("Potential copyright violations detected!")
                     for match in detected_matches:
-                        st.write(f"- [Found duplicate image]({match})")
+                        st.write(f"- **URL**: {match[0]} - **Similarity**: {match[1]:.2f}")
                 else:
-                    st.info("No duplicates found.")
-            
+                    st.info("No matches found.")
+
             except Exception as e:
                 st.error(f"Error: {e}")
 
+# If user selects "Image"
+elif content_type == "Image":
+    # Upload the image
+    uploaded_image = st.file_uploader("Choose an image...", type="jpg")
+
+    if uploaded_image:
+        # Load the image into Google Vision for analysis
+        image = Image.open(uploaded_image)
+        img_byte_array = io.BytesIO()
+        image.save(img_byte_array, format="PNG")
+        content = img_byte_array.getvalue()
+
+        # Perform reverse image search with Google Vision API
+        image = types.Image(content=content)
+        response = vision_client.web_detection(image=image)
+
+        # Process the response
+        if response.web_detection.pages_with_matching_images:
+            st.write("The image was found on the following pages:")
+            for page in response.web_detection.pages_with_matching_images:
+                st.write(f"- {page.url}")
+        else:
+            st.write("No matching images were found on the web.")
+
+# If no content is selected or uploaded, show a message
 else:
-    st.info("Please upload an image to start.")
+    st.info("Please select content type and provide the necessary input (text or image).")
