@@ -1,6 +1,5 @@
  streamlit
 google-api-python-client
-google-cloud-vision
 Pillow 
 scikit-learn
 requests
