@@ -83,7 +83,7 @@ elif content_type == "Image":
 
     if uploaded_image is not None:
         image = Image.open(uploaded_image)
-        st.image(image, caption="Uploaded Image", use_column_width=True)
+        st.image(image, caption="Uploaded Image", use_container_width=True)
 
 # Handle File Upload (PDF, DOCX, etc.)
 elif content_type == "File":
