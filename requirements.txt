@@ -1,7 +1,5 @@
  streamlit
-requests 
-beautifulsoup4 
-pillow 
-imagehash 
-opencv-python
-googleapiclient
+google-api-python-client
+google-cloud-vision
+Pillow 
+scikit-learn
