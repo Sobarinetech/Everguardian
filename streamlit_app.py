@@ -1,10 +1,6 @@
 import streamlit as st
 import requests
 from googleapiclient.discovery import build
-from google.cloud import vision
-from google.cloud.vision import types
-from PIL import Image
-import io
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
@@ -12,15 +8,12 @@ from sklearn.metrics.pairwise import cosine_similarity
 API_KEY = st.secrets["GOOGLE_API_KEY"]  # Your Google API key from Streamlit secrets
 CX = st.secrets["GOOGLE_SEARCH_ENGINE_ID"]  # Your Google Custom Search Engine ID
 
-# Google Vision client for reverse image search
-vision_client = vision.ImageAnnotatorClient()
-
 # Streamlit UI for text input and file upload
-st.title("Advanced Copyright Content & Image Detection Tool")
-st.write("Detect if your copyrighted content or images are being used elsewhere on the web.")
+st.title("Advanced Copyright Content Detection Tool")
+st.write("Detect if your copyrighted content is being used elsewhere on the web.")
 
 # Option for user to choose content type: text or image
-content_type = st.selectbox("Select Content Type", ["Text", "Image"])
+content_type = st.selectbox("Select Content Type", ["Text"])
 
 # If user selects "Text"
 if content_type == "Text":
@@ -70,30 +63,6 @@ if content_type == "Text":
             except Exception as e:
                 st.error(f"Error: {e}")
 
-# If user selects "Image"
-elif content_type == "Image":
-    # Upload the image
-    uploaded_image = st.file_uploader("Choose an image...", type="jpg")
-
-    if uploaded_image:
-        # Load the image into Google Vision for analysis
-        image = Image.open(uploaded_image)
-        img_byte_array = io.BytesIO()
-        image.save(img_byte_array, format="PNG")
-        content = img_byte_array.getvalue()
-
-        # Perform reverse image search with Google Vision API
-        image = types.Image(content=content)
-        response = vision_client.web_detection(image=image)
-
-        # Process the response
-        if response.web_detection.pages_with_matching_images:
-            st.write("The image was found on the following pages:")
-            for page in response.web_detection.pages_with_matching_images:
-                st.write(f"- {page.url}")
-        else:
-            st.write("No matching images were found on the web.")
-
 # If no content is selected or uploaded, show a message
 else:
-    st.info("Please select content type and provide the necessary input (text or image).")
+    st.info("Please select content type and provide the necessary input (text).")
