@@ -14,6 +14,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import io
 
+# Hide Streamlit's default elements (like GitHub, star, etc.)
+st.set_page_config(page_title="Advanced Copyright Content Detection Tool", page_icon="🔍", layout="wide", initial_sidebar_state="collapsed")
+
 # Set up the Google API keys and Custom Search Engine ID
 API_KEY = st.secrets["GOOGLE_API_KEY"]  # Your Google API key from Streamlit secrets
 CX = st.secrets["GOOGLE_SEARCH_ENGINE_ID"]  # Your Google Custom Search Engine ID
