@@ -11,6 +11,7 @@ from wordcloud import WordCloud
 from textstat import textstat
 import time
 import pandas as pd
+import matplotlib.pyplot as plt
 
 # Set up the Google API keys and Custom Search Engine ID
 API_KEY = st.secrets["GOOGLE_API_KEY"]  # Your Google API key from Streamlit secrets
@@ -56,6 +57,9 @@ def preprocess_text(text):
     # Return the preprocessed text
     return " ".join(filtered_tokens)
 
+# Initialize detected_matches outside of the button click event
+detected_matches = []
+
 # Button to search for copyright violations
 if st.button("Search the Web for Copyright Violations"):
     if not user_content.strip():
@@ -70,7 +74,6 @@ if st.button("Search the Web for Copyright Violations"):
 
             # Perform the search query with num=10 to fetch the first 10 results
             response = service.cse().list(q=processed_content, cx=CX, num=10).execute()  # Fetch first 10 results
-            detected_matches = []
 
             # Extract URLs from the first page of search results
             for result in response.get('items', []):
