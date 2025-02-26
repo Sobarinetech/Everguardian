@@ -6,15 +6,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 from bs4 import BeautifulSoup
 from langdetect import detect
 import re
-from nltk.tokenize import word_tokenize
-from nltk.corpus import stopwords
-from nltk.stem import PorterStemmer
 from textblob import TextBlob
-import nltk
-
-# Download NLTK resources if not already installed
-nltk.download('punkt')
-nltk.download('stopwords')
 
 # Set up the Google API keys and Custom Search Engine ID
 API_KEY = st.secrets["GOOGLE_API_KEY"]  # Your Google API key from Streamlit secrets
@@ -40,19 +32,25 @@ def preprocess_text(text):
     # Remove non-alphanumeric characters
     text = re.sub(r'[^a-zA-Z\s]', '', text)
 
-    # Tokenize the text
-    tokens = word_tokenize(text)
+    # Tokenize the text by splitting into words
+    tokens = text.split()
 
-    # Remove stopwords
-    stop_words = set(stopwords.words("english"))
+    # Remove common stopwords manually (instead of using NLTK)
+    stop_words = set([
+        'i', 'me', 'my', 'myself', 'we', 'our', 'ours', 'ourselves', 'you', 'your', 'yours', 'yourself', 'yourselves',
+        'he', 'him', 'his', 'himself', 'she', 'her', 'hers', 'herself', 'it', 'its', 'itself', 'they', 'them', 'their',
+        'theirs', 'themselves', 'what', 'which', 'who', 'whom', 'this', 'that', 'these', 'those', 'am', 'is', 'are',
+        'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'having', 'do', 'does', 'did', 'doing', 'a', 'an',
+        'the', 'and', 'but', 'if', 'or', 'because', 'as', 'until', 'while', 'of', 'at', 'by', 'for', 'with', 'about',
+        'against', 'between', 'into', 'through', 'during', 'before', 'after', 'above', 'below', 'to', 'from', 'up',
+        'down', 'in', 'out', 'on', 'off', 'over', 'under', 'again', 'further', 'then', 'once', 'here', 'there', 'when',
+        'where', 'why', 'how', 'all', 'any', 'both', 'each', 'few', 'more', 'most', 'other', 'some', 'such', 'no', 'nor',
+        'not', 'only', 'own', 'same', 'so', 'than', 'too', 'very', 's', 't', 'can', 'will', 'just', 'don', 'should', 'now'
+    ])
     filtered_tokens = [word for word in tokens if word not in stop_words]
 
-    # Apply stemming
-    stemmer = PorterStemmer()
-    stemmed_tokens = [stemmer.stem(word) for word in filtered_tokens]
-
-    # Join tokens back into a single string
-    return " ".join(stemmed_tokens)
+    # Return the preprocessed text
+    return " ".join(filtered_tokens)
 
 # Button to search for copyright violations
 if st.button("Search the Web for Copyright Violations"):
