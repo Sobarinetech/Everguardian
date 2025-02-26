@@ -17,6 +17,10 @@ import matplotlib.pyplot as plt
 API_KEY = st.secrets["GOOGLE_API_KEY"]  # Your Google API key from Streamlit secrets
 CX = st.secrets["GOOGLE_SEARCH_ENGINE_ID"]  # Your Google Custom Search Engine ID
 
+# Initializing session state for detected matches
+if 'detected_matches' not in st.session_state:
+    st.session_state.detected_matches = []
+
 # Streamlit UI for text input
 st.title("Advanced Copyright Content Detection Tool")
 st.write("Detect if your copyrighted content is being used elsewhere on the web.")
@@ -57,9 +61,6 @@ def preprocess_text(text):
     # Return the preprocessed text
     return " ".join(filtered_tokens)
 
-# Initialize detected_matches outside of the button click event
-detected_matches = []
-
 # Button to search for copyright violations
 if st.button("Search the Web for Copyright Violations"):
     if not user_content.strip():
@@ -74,6 +75,9 @@ if st.button("Search the Web for Copyright Violations"):
 
             # Perform the search query with num=10 to fetch the first 10 results
             response = service.cse().list(q=processed_content, cx=CX, num=10).execute()  # Fetch first 10 results
+
+            # Reset detected matches
+            st.session_state.detected_matches = []
 
             # Extract URLs from the first page of search results
             for result in response.get('items', []):
@@ -99,10 +103,10 @@ if st.button("Search the Web for Copyright Violations"):
 
                     # If similarity exceeds a threshold, record the match
                     if similarity[0][0] > 0.7:  # Adjust threshold for better recall
-                        detected_matches.append((url, similarity[0][0], web_text[:500]))  # Display snippet
+                        st.session_state.detected_matches.append((url, similarity[0][0], web_text[:500]))  # Display snippet
 
             # Fetch the next 15 results via pagination (if necessary)
-            if len(detected_matches) < 25 and response.get("queries", {}).get("nextPage"):
+            if len(st.session_state.detected_matches) < 25 and response.get("queries", {}).get("nextPage"):
                 next_page_token = response["queries"]["nextPage"][0]["startIndex"]
                 response = service.cse().list(q=processed_content, cx=CX, num=10, start=next_page_token).execute()
 
@@ -129,16 +133,16 @@ if st.button("Search the Web for Copyright Violations"):
 
                         # If similarity exceeds a threshold, record the match
                         if similarity[0][0] > 0.7:  # Adjust threshold for better recall
-                            detected_matches.append((url, similarity[0][0], web_text[:500]))  # Display snippet
+                            st.session_state.detected_matches.append((url, similarity[0][0], web_text[:500]))  # Display snippet
 
                     # Stop if we have reached the limit of 25 results
-                    if len(detected_matches) >= 25:
+                    if len(st.session_state.detected_matches) >= 25:
                         break
 
             # Display results
-            if detected_matches:
+            if st.session_state.detected_matches:
                 st.success("Potential copyright violations detected!")
-                for match in detected_matches:
+                for match in st.session_state.detected_matches:
                     st.write(f"- **URL**: {match[0]} - **Similarity**: {match[1]:.2f}")
                     st.write(f"Snippet: {match[2]}...")
 
@@ -170,8 +174,8 @@ if st.button("Search the Web for Copyright Violations"):
 
 # Option to save results to a CSV file
 if st.button("Save Results to CSV"):
-    if detected_matches:
-        df = pd.DataFrame(detected_matches, columns=["URL", "Similarity", "Snippet"])
+    if st.session_state.detected_matches:
+        df = pd.DataFrame(st.session_state.detected_matches, columns=["URL", "Similarity", "Snippet"])
         df.to_csv("detected_matches.csv", index=False)
         st.success("Results saved to detected_matches.csv")
     else:
