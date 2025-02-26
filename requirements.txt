@@ -4,8 +4,8 @@ google-api-python-client
 scikit-learn
 beautifulsoup4
 langdetect
-Pillow
-pdfminer.six
-python-docx  # Optional for DOCX support
-nltk
 textblob
+wordcloud
+textstat
+matplotlib
+pandas
