@@ -148,11 +148,11 @@ if st.button("Search the Web for Copyright Violations"):
                         similarity = cosine_similarity(vectorizer[0:1], vectorizer[1:2])
 
                         # If similarity exceeds a threshold, record the match
-                        if similarity[0][0] > 0.4:  # Lowered the threshold to 0.4 for better recall
+                        if similarity[0][0] > 0.5:  # Lowered the threshold to 0.4 for better recall
                             st.session_state.detected_matches.append((url, similarity[0][0], web_text[:500]))  # Display snippet
 
                     # Stop if we have reached the limit of 25 results
-                    if len(st.session_state.detected_matches) >= 25:
+                    if len(st.session_state.detected_matches) >= 50:
                         break
 
             # Display results
