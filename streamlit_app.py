@@ -12,7 +12,6 @@ from PIL import Image
 # Set up the Google API keys and Custom Search Engine ID
 API_KEY = st.secrets["GOOGLE_API_KEY"]  # Your Google API key from Streamlit secrets
 CX = st.secrets["GOOGLE_SEARCH_ENGINE_ID"]  # Your Google Custom Search Engine ID
-TINEYE_API_KEY = st.secrets["TINEYE_API_KEY"]  # Your TinEye API key from Streamlit secrets
 
 # Streamlit UI for text input and file upload
 st.title("Advanced Copyright Content Detection Tool")
@@ -78,32 +77,13 @@ if content_type == "Text":
             except Exception as e:
                 st.error(f"Error: {e}")
 
-# Handle Image Upload and Reverse Image Search (via TinEye)
+# Handle Image Upload (without OCR functionality)
 elif content_type == "Image":
     uploaded_image = st.file_uploader("Upload an image to analyze:", type=["jpg", "jpeg", "png"])
 
     if uploaded_image is not None:
         image = Image.open(uploaded_image)
         st.image(image, caption="Uploaded Image", use_container_width=True)
-
-        # Perform reverse image search with TinEye
-        if st.button("Search the Web for Image Violations"):
-            try:
-                # Convert the uploaded image to a URL or use a direct TinEye API request
-                image_url = upload_image_to_server(uploaded_image)  # Function to handle the upload
-                if image_url:
-                    search_results = search_tineye(image_url)
-                    if search_results:
-                        st.success("Potential image copyright violations detected!")
-                        for result in search_results.get("results", []):
-                            st.write(f"- **URL**: {result['url']} - **Match Confidence**: {result['match']}")
-                    else:
-                        st.info("No matches found.")
-                else:
-                    st.error("Failed to upload the image for reverse search.")
-
-            except Exception as e:
-                st.error(f"Error: {e}")
 
 # Handle File Upload (PDF, DOCX, etc.)
 elif content_type == "File":
@@ -166,19 +146,3 @@ elif content_type == "File":
 
                 except Exception as e:
                     st.error(f"Error: {e}")
-
-# TinEye Reverse Image Search Function
-def search_tineye(image_url):
-    url = 'https://api.tineye.com/rest/search/'
-    params = {
-        'image_url': image_url,
-        'api_key': TINEYE_API_KEY
-    }
-    response = requests.get(url, params=params)
-    return response.json()
-
-# Function to upload image to a server (use a real file hosting service in production)
-def upload_image_to_server(uploaded_image):
-    # Temporary method to simulate image URL generation (you should host the image somewhere)
-    image_url = "https://example.com/image.jpg"  # Replace with real logic to upload and get a URL
-    return image_url
