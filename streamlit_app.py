@@ -12,6 +12,7 @@ from textstat import textstat
 import time
 import pandas as pd
 import matplotlib.pyplot as plt
+import io
 
 # Set up the Google API keys and Custom Search Engine ID
 API_KEY = st.secrets["GOOGLE_API_KEY"]  # Your Google API key from Streamlit secrets
@@ -148,6 +149,7 @@ if st.button("Search the Web for Copyright Violations"):
             # Display results
             if st.session_state.detected_matches:
                 st.success("Potential copyright violations detected!")
+                result_data = []
                 for match in st.session_state.detected_matches:
                     st.write(f"- **URL**: {match[0]} - **Similarity**: {match[1]:.2f}")
                     st.write(f"Snippet: {match[2]}...")
@@ -169,8 +171,27 @@ if st.button("Search the Web for Copyright Violations"):
                     readability_score = textstat.flesch_reading_ease(match[2])
                     st.write(f"Readability score: {readability_score}")
 
+                    # Add results to summary
+                    result_data.append([match[0], match[1], match[2]])
+
                     # Delay to avoid rate limiting
                     time.sleep(1)
+
+                # Display the results as a dataframe (summary table)
+                df = pd.DataFrame(result_data, columns=["URL", "Similarity", "Snippet"])
+                st.dataframe(df)
+
+                # Provide a download link for the CSV file
+                def convert_df(df):
+                    return df.to_csv(index=False).encode('utf-8')
+
+                csv = convert_df(df)
+                st.download_button(
+                    label="Download Results as CSV",
+                    data=csv,
+                    file_name="detected_matches.csv",
+                    mime="text/csv"
+                )
 
             else:
                 st.info("No matches found.")
