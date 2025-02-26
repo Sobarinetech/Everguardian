@@ -91,7 +91,7 @@ if st.button("Search the Web for Copyright Violations"):
                 processed_content = preprocess_text(user_content)
 
                 # Perform the search query with num=10 to fetch the first 10 results
-                response = service.cse().list(q=processed_content, cx=CX, num=10).execute()  # Fetch first 10 results
+                response = service.cse().list(q=processed_content, cx=CX, num=100).execute()  # Fetch first 10 results
 
                 # Reset detected matches
                 st.session_state.detected_matches = []
@@ -119,7 +119,7 @@ if st.button("Search the Web for Copyright Violations"):
                         similarity = cosine_similarity(vectorizer[0:1], vectorizer[1:2])
 
                         # If similarity exceeds a threshold, record the match
-                        if similarity[0][0] > 0.5:  # Adjust threshold for better recall
+                        if similarity[0][0] > 0.4:  # Adjust threshold for better recall
                             st.session_state.detected_matches.append((url, similarity[0][0], web_text[:500]))  # Display snippet
 
                 # Display results in a dashboard
