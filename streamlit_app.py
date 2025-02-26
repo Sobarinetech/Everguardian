@@ -10,6 +10,11 @@ from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
 from textblob import TextBlob
+import nltk
+
+# Download NLTK resources if not already installed
+nltk.download('punkt')
+nltk.download('stopwords')
 
 # Set up the Google API keys and Custom Search Engine ID
 API_KEY = st.secrets["GOOGLE_API_KEY"]  # Your Google API key from Streamlit secrets
