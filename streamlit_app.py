@@ -99,16 +99,17 @@ if st.button("🔍 Search the Web for Copyright Violations"):
                         paragraphs = soup.find_all("p")
                         web_text = " ".join([para.get_text() for para in paragraphs])
 
-                        # Preprocess web content
-                        processed_web_text = preprocess_text(web_text)
+                        if len(web_text.split()) > 50:  # Ensure the page contains enough text to analyze
+                            # Preprocess web content
+                            processed_web_text = preprocess_text(web_text)
 
-                        # Calculate similarity between user content and web content
-                        vectorizer = TfidfVectorizer().fit_transform([processed_content, processed_web_text])
-                        similarity = cosine_similarity(vectorizer[0:1], vectorizer[1:2])
+                            # Calculate similarity between user content and web content
+                            vectorizer = TfidfVectorizer().fit_transform([processed_content, processed_web_text])
+                            similarity = cosine_similarity(vectorizer[0:1], vectorizer[1:2])
 
-                        # If similarity exceeds a threshold, record the match
-                        if similarity[0][0] > 0.4:
-                            st.session_state.detected_matches.append((url, similarity[0][0], web_text[:500]))
+                            # Adjust threshold for better recall (lower the threshold for better detection)
+                            if similarity[0][0] > 0.3:  # Changed from 0.5 to 0.3 for higher recall
+                                st.session_state.detected_matches.append((url, similarity[0][0], web_text[:500]))
 
                 # Display the results in a professional dashboard layout
                 if st.session_state.detected_matches:
@@ -120,7 +121,7 @@ if st.button("🔍 Search the Web for Copyright Violations"):
                         st.subheader("📊 Detected Matches Summary")
                         total_matches = len(st.session_state.detected_matches)
                         st.write(f"**Total matches found**: {total_matches}")
-                        st.write(f"**Displaying top {min(total_matches, 20)} matches**")
+                        st.write(f"**Displaying top {min(total_matches, 10)} matches**")
 
                     # Display snippet samples
                     with dashboard_columns[1]:
