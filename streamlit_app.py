@@ -7,6 +7,10 @@ from bs4 import BeautifulSoup
 from langdetect import detect
 import re
 from textblob import TextBlob
+from wordcloud import WordCloud
+from textstat import textstat
+import time
+import pandas as pd
 
 # Set up the Google API keys and Custom Search Engine ID
 API_KEY = st.secrets["GOOGLE_API_KEY"]  # Your Google API key from Streamlit secrets
@@ -141,8 +145,31 @@ if st.button("Search the Web for Copyright Violations"):
                     sentiment_status = "Positive" if sentiment > 0 else "Negative" if sentiment < 0 else "Neutral"
                     st.write(f"Sentiment of the matched content: {sentiment_status}")
 
+                    # Display a word cloud of the matched content
+                    wordcloud = WordCloud(width=800, height=400, background_color='white').generate(match[2])
+                    plt.figure(figsize=(10, 5))
+                    plt.imshow(wordcloud, interpolation='bilinear')
+                    plt.axis('off')
+                    st.pyplot(plt)
+
+                    # Readability score of the matched content
+                    readability_score = textstat.flesch_reading_ease(match[2])
+                    st.write(f"Readability score: {readability_score}")
+
+                    # Delay to avoid rate limiting
+                    time.sleep(1)
+
             else:
                 st.info("No matches found.")
 
         except Exception as e:
             st.error(f"Error: {e}")
+
+# Option to save results to a CSV file
+if st.button("Save Results to CSV"):
+    if detected_matches:
+        df = pd.DataFrame(detected_matches, columns=["URL", "Similarity", "Snippet"])
+        df.to_csv("detected_matches.csv", index=False)
+        st.success("Results saved to detected_matches.csv")
+    else:
+        st.error("No results to save.")
