@@ -102,11 +102,8 @@ if st.button("Search the Web for Copyright Violations"):
                     vectorizer = TfidfVectorizer().fit_transform([processed_content, processed_web_text])
                     similarity = cosine_similarity(vectorizer[0:1], vectorizer[1:2])
 
-                    # Display similarity for debugging purposes
-                    st.write(f"Similarity between content and web page: {similarity[0][0]:.2f}")
-
                     # If similarity exceeds a threshold, record the match
-                    if similarity[0][0] > 0.5:  # Lowered the threshold to 0.5
+                    if similarity[0][0] > 0.4:  # Lowered the threshold to 0.4 for better recall
                         st.session_state.detected_matches.append((url, similarity[0][0], web_text[:500]))  # Display snippet
 
             # Fetch the next 15 results via pagination (if necessary)
@@ -135,11 +132,8 @@ if st.button("Search the Web for Copyright Violations"):
                         vectorizer = TfidfVectorizer().fit_transform([processed_content, processed_web_text])
                         similarity = cosine_similarity(vectorizer[0:1], vectorizer[1:2])
 
-                        # Display similarity for debugging purposes
-                        st.write(f"Similarity between content and web page: {similarity[0][0]:.2f}")
-
                         # If similarity exceeds a threshold, record the match
-                        if similarity[0][0] > 0.5:  # Lowered the threshold to 0.5
+                        if similarity[0][0] > 0.4:  # Lowered the threshold to 0.4 for better recall
                             st.session_state.detected_matches.append((url, similarity[0][0], web_text[:500]))  # Display snippet
 
                     # Stop if we have reached the limit of 25 results
