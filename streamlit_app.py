@@ -107,7 +107,7 @@ if st.button("🔍 Search the Web for Copyright Violations"):
                         similarity = cosine_similarity(vectorizer[0:1], vectorizer[1:2])
 
                         # If similarity exceeds a threshold, record the match
-                        if similarity[0][0] > 0.5:
+                        if similarity[0][0] > 0.4:
                             st.session_state.detected_matches.append((url, similarity[0][0], web_text[:500]))
 
                 # Display the results in a professional dashboard layout
@@ -120,7 +120,7 @@ if st.button("🔍 Search the Web for Copyright Violations"):
                         st.subheader("📊 Detected Matches Summary")
                         total_matches = len(st.session_state.detected_matches)
                         st.write(f"**Total matches found**: {total_matches}")
-                        st.write(f"**Displaying top {min(total_matches, 10)} matches**")
+                        st.write(f"**Displaying top {min(total_matches, 20)} matches**")
 
                     # Display snippet samples
                     with dashboard_columns[1]:
