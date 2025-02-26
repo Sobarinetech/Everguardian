@@ -91,7 +91,7 @@ if st.button("Search the Web for Copyright Violations"):
                 processed_content = preprocess_text(user_content)
 
                 # Perform the search query with num=10 to fetch the first 10 results
-                response = service.cse().list(q=processed_content, cx=CX, num=100).execute()  # Fetch first 10 results
+                response = service.cse().list(q=processed_content, cx=CX, num=10).execute()  # Fetch first 10 results
 
                 # Reset detected matches
                 st.session_state.detected_matches = []
