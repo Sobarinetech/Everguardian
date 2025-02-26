@@ -9,3 +9,4 @@ wordcloud
 textstat
 matplotlib
 pandas
+gensim
