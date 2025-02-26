@@ -64,15 +64,38 @@ if st.button("Search the Web for Copyright Violations"):
             # Preprocess user content before searching
             processed_content = preprocess_text(user_content)
 
-            # Perform the search query
-            response = service.cse().list(q=processed_content, cx=CX, num=10).execute()  # 10 results per page
-
-            # Extract URLs from the search results
-            search_results = response.get('items', [])
+            # Perform the search query with num=10 to fetch the first 10 results
+            response = service.cse().list(q=processed_content, cx=CX, num=10).execute()  # Fetch first 10 results
             detected_matches = []
 
-            # Loop through the search results (including pagination)
-            while response.get("queries", {}).get("nextPage"):
+            # Extract URLs from the first page of search results
+            for result in response.get('items', []):
+                url = result['link']
+                st.write(f"Analyzing {url}...")
+
+                # Fetch the content from the URL
+                content_response = requests.get(url, timeout=10)
+                if content_response.status_code == 200:
+                    web_content = content_response.text
+
+                    # Clean and parse the HTML content
+                    soup = BeautifulSoup(web_content, "html.parser")
+                    paragraphs = soup.find_all("p")
+                    web_text = " ".join([para.get_text() for para in paragraphs])
+
+                    # Preprocess web content
+                    processed_web_text = preprocess_text(web_text)
+
+                    # Calculate similarity between user content and web content
+                    vectorizer = TfidfVectorizer().fit_transform([processed_content, processed_web_text])
+                    similarity = cosine_similarity(vectorizer[0:1], vectorizer[1:2])
+
+                    # If similarity exceeds a threshold, record the match
+                    if similarity[0][0] > 0.7:  # Adjust threshold for better recall
+                        detected_matches.append((url, similarity[0][0], web_text[:500]))  # Display snippet
+
+            # Fetch the next 15 results via pagination (if necessary)
+            if len(detected_matches) < 25 and response.get("queries", {}).get("nextPage"):
                 next_page_token = response["queries"]["nextPage"][0]["startIndex"]
                 response = service.cse().list(q=processed_content, cx=CX, num=10, start=next_page_token).execute()
 
@@ -100,6 +123,10 @@ if st.button("Search the Web for Copyright Violations"):
                         # If similarity exceeds a threshold, record the match
                         if similarity[0][0] > 0.7:  # Adjust threshold for better recall
                             detected_matches.append((url, similarity[0][0], web_text[:500]))  # Display snippet
+
+                    # Stop if we have reached the limit of 25 results
+                    if len(detected_matches) >= 25:
+                        break
 
             # Display results
             if detected_matches:
