@@ -54,7 +54,7 @@ def preprocess_text(text):
     # Convert to lowercase
     text = text.lower()
 
-    # Remove non-alphanumeric characters
+    # Remove non-alphanumeric characters (e.g., punctuation, numbers)
     text = re.sub(r'[^a-zA-Z\s]', '', text)
 
     # Tokenize the text by splitting into words
@@ -118,7 +118,7 @@ if st.button("Search the Web for Copyright Violations"):
                     similarity = cosine_similarity(vectorizer[0:1], vectorizer[1:2])
 
                     # If similarity exceeds a threshold, record the match
-                    if similarity[0][0] > 0.2:  # Lowered the threshold to 0.4 for better recall
+                    if similarity[0][0] > 0.5:  # Lowered the threshold to 0.5 for better recall
                         st.session_state.detected_matches.append((url, similarity[0][0], web_text[:500]))  # Display snippet
 
             # Fetch the next 15 results via pagination (if necessary)
@@ -148,11 +148,11 @@ if st.button("Search the Web for Copyright Violations"):
                         similarity = cosine_similarity(vectorizer[0:1], vectorizer[1:2])
 
                         # If similarity exceeds a threshold, record the match
-                        if similarity[0][0] > 0.5:  # Lowered the threshold to 0.4 for better recall
+                        if similarity[0][0] > 0.5:  # Lowered the threshold to 0.5 for better recall
                             st.session_state.detected_matches.append((url, similarity[0][0], web_text[:500]))  # Display snippet
 
                     # Stop if we have reached the limit of 25 results
-                    if len(st.session_state.detected_matches) >= 50:
+                    if len(st.session_state.detected_matches) >= 25:
                         break
 
             # Display results
