@@ -55,7 +55,7 @@ user_content = st.text_area("Paste your copyrighted content:", height=200, place
         ### Self-Hosting
         If you want to self-host this application or download the source code, please visit:  
             👉 [Download Source Code](https://dhruvbansal8.gumroad.com/l/hhwbm?_gl=1*1hk16wi*_ga*MTQwNDE3ODM4My4xNzM0MzcyNTUw*_ga_6LJN6D94N6*MTc0MDU4NTEwMi4yNS4xLjE3NDA1ODY3NDMuMC4wLjA.)
-        """
+        """)
 
 # Detect language of the user input
 if user_content:
