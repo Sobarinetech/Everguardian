@@ -7,3 +7,5 @@ langdetect
 Pillow
 pdfminer.six
 python-docx  # Optional for DOCX support
+nltk
+textblob
