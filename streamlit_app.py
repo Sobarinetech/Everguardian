@@ -45,6 +45,7 @@ Detect if your copyrighted content is being used elsewhere on the web.
 We use sophisticated algorithms to analyze web content for similarities. 
 Simply paste your content and let us do the rest!
 """)
+
 # Self-hosting and Source Code link
     st.markdown(
         """
@@ -52,6 +53,7 @@ Simply paste your content and let us do the rest!
         If you want to self-host this application or download the source code, please visit:  
         👉 [Download Source Code](https://dhruvbansal8.gumroad.com/l/hhwbm)
         """
+
 # Add input text area
 user_content = st.text_area("Paste your copyrighted content:", height=200, placeholder="Enter your text here...")
 
