@@ -49,7 +49,6 @@ Simply paste your content and let us do the rest!
 # Add input text area
 user_content = st.text_area("Paste your copyrighted content:", height=200, placeholder="Enter your text here...")
 
-
 # Detect language of the user input
 if user_content:
     lang = detect(user_content)
@@ -92,25 +91,28 @@ if st.button("🔍 Search the Web for Copyright Violations"):
                     url = result['link']
                     st.write(f"📄 Analyzing {url}...")
 
-                    # Fetch the content from the URL
-                    content_response = requests.get(url, timeout=10)
-                    if content_response.status_code == 200:
-                        web_content = content_response.text
-                        soup = BeautifulSoup(web_content, "html.parser")
-                        paragraphs = soup.find_all("p")
-                        web_text = " ".join([para.get_text() for para in paragraphs])
+                    try:
+                        # Fetch the content from the URL
+                        content_response = requests.get(url, timeout=10)
+                        if content_response.status_code == 200:
+                            web_content = content_response.text
+                            soup = BeautifulSoup(web_content, "html.parser")
+                            paragraphs = soup.find_all("p")
+                            web_text = " ".join([para.get_text() for para in paragraphs])
 
-                        if len(web_text.split()) > 50:  # Ensure the page contains enough text to analyze
-                            # Preprocess web content
-                            processed_web_text = preprocess_text(web_text)
+                            if len(web_text.split()) > 50:  # Ensure the page contains enough text to analyze
+                                # Preprocess web content
+                                processed_web_text = preprocess_text(web_text)
 
-                            # Calculate similarity between user content and web content
-                            vectorizer = TfidfVectorizer().fit_transform([processed_content, processed_web_text])
-                            similarity = cosine_similarity(vectorizer[0:1], vectorizer[1:2])
+                                # Calculate similarity between user content and web content
+                                vectorizer = TfidfVectorizer().fit_transform([processed_content, processed_web_text])
+                                similarity = cosine_similarity(vectorizer[0:1], vectorizer[1:2])
 
-                            # Adjust threshold for better recall (lower the threshold for better detection)
-                            if similarity[0][0] > 0.3:  # Changed from 0.5 to 0.3 for higher recall
-                                st.session_state.detected_matches.append((url, similarity[0][0], web_text[:500]))
+                                # Adjust threshold for better recall (lower the threshold for better detection)
+                                if similarity[0][0] > 0.3:  # Changed from 0.5 to 0.3 for higher recall
+                                    st.session_state.detected_matches.append((url, similarity[0][0], web_text[:500]))
+                    except requests.exceptions.RequestException:
+                        st.warning(f"⚠️ Skipping {url} due to connection issues.")
 
                 # Display the results in a professional dashboard layout
                 if st.session_state.detected_matches:
