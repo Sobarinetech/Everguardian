@@ -112,7 +112,7 @@ if st.button("🔍 Search the Web for Copyright Violations"):
                                 if similarity[0][0] > 0.3:  # Changed from 0.5 to 0.3 for higher recall
                                     st.session_state.detected_matches.append((url, similarity[0][0], web_text[:500]))
                     except requests.exceptions.RequestException:
-                        st.warning(f"⚠️ Skipping {url} due to connection issues.")
+                        pass  # Skip site and do not show warnings to users
 
                 # Display the results in a professional dashboard layout
                 if st.session_state.detected_matches:
